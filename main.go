@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pastebin/internal/paste"
 	log "github.com/sirupsen/logrus"
@@ -20,21 +22,39 @@ type SetBody struct {
 func main() {
 	pastebin = paste.InitBin()
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET, POST"},
+		AllowHeaders: []string{"Origin, Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"},
+	}))
+
+	router.Use(static.Serve("/", static.LocalFile("./frontend/build", false)))
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
-		return
 	})
 
-	router.GET("/:key", GetValueByKey)
-	router.POST("/", SetValue)
+	router.GET("/get", GetValueByKey)
+	router.POST("/set", SetValue)
 	router.Run(":8888")
-	return
 }
 
 func GetValueByKey(c *gin.Context) {
-	key := c.Param("key")
+	key := c.Query("key")
+	if key == "" {
+		err := fmt.Errorf("missing key in request")
+		log.Error(err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if len(key) != paste.Keylen {
+		log.Error(fmt.Errorf("unexpected key given in request"))
+		c.AbortWithError(http.StatusNotFound, fmt.Errorf("key %v not found", key))
+		return
+	}
+
 	val, keyErr := pastebin.Retrieve(key)
 	if keyErr != nil {
 		log.Error(keyErr)
@@ -45,7 +65,6 @@ func GetValueByKey(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"value": val,
 	})
-	return
 }
 
 func SetValue(c *gin.Context) {
@@ -60,5 +79,4 @@ func SetValue(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"key": key,
 	})
-	return
 }

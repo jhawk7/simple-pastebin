@@ -1,13 +1,14 @@
 package paste
 
 import (
+	"reflect"
 	"testing"
 )
 
 func Test_Store(t *testing.T) {
 	pastebin := InitBin()
 	key := pastebin.Store("some_value")
-	if pastebin.storage[key] != "some_value" {
+	if pastebin.storage[key].Value != "some_value" {
 		t.Errorf("unexpected value return from key")
 	}
 }
@@ -35,5 +36,23 @@ func Test_Retrieve_Failure(t *testing.T) {
 
 	if val != "" {
 		t.Errorf("unexpected value returned during retrieval error, %v", val)
+	}
+}
+
+func Test_RetrieveAll(t *testing.T) {
+	pastebin := InitBin()
+	key1 := pastebin.Store("val1")
+	key2 := pastebin.Store("val2")
+
+	pasteData := pastebin.RetrieveAll()
+	var emptyData PasteData
+	if reflect.DeepEqual(pasteData, emptyData) {
+		t.Errorf("unexpected empty pasteData while retrieving all")
+	}
+
+	for _, paste := range pasteData.Data {
+		if paste.Key != key1 && paste.Key != key2 {
+			t.Errorf("unexpected paste from pasteData while retrieving all")
+		}
 	}
 }

@@ -1,0 +1,8 @@
+GET http://localhost:8888/get?key=pn60
+
+###
+
+POST http://localhost:8888/set 
+Content-Type: application/json
+
+{"value": "test"}
