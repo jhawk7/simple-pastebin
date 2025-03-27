@@ -42,6 +42,7 @@ func (pbin *Bin) Retrieve(key string) (val string, err error) {
 	if value, found := pbin.storage[key]; !found {
 		err = fmt.Errorf("key %v does not exist", key)
 	} else {
+		log.Infof("data for key %v retrieved, removing kv pair", key)
 		delete(pbin.storage, key)
 		val = value
 	}
