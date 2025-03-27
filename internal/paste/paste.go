@@ -27,6 +27,7 @@ func (pbin *Bin) Store(value string) string {
 
 	key := generateKey()
 	for pbin.storage[key] != "" {
+		log.Infof("collision detected with key %v; re-generating", key)
 		key = generateKey()
 	}
 
@@ -51,7 +52,7 @@ func generateKey() string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	// initialize random number generator
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, 8)
+	b := make([]byte, 4) //easier to remember 4 chars
 	for i := range b {
 		b[i] = charset[r.Intn(len(charset))]
 	}
