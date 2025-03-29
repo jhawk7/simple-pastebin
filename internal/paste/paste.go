@@ -19,7 +19,7 @@ type Paste struct {
 	Ts    string `json:"timestamp"`
 }
 
-type PasteData struct {
+type PasteCollection struct {
 	Data []*Paste `json:"data"`
 }
 
@@ -69,7 +69,7 @@ func (pbin *Bin) Retrieve(key string) (val string, err error) {
 	return
 }
 
-func (pbin *Bin) RetrieveAll() (pasteData PasteData) {
+func (pbin *Bin) RetrieveAll() (pasteData PasteCollection) {
 	pbin.mu.Lock()
 	defer pbin.mu.Unlock()
 
@@ -88,6 +88,7 @@ func (pbin *Bin) RetrieveAll() (pasteData PasteData) {
 
 func (pbin *Bin) DeletePaste(key string) {
 	pbin.Retrieve(key)
+	log.Infof("key %v deleted", key)
 	return
 }
 

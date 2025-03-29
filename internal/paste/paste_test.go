@@ -45,7 +45,7 @@ func Test_RetrieveAll(t *testing.T) {
 	key2 := pastebin.Store("val2")
 
 	pasteData := pastebin.RetrieveAll()
-	var emptyData PasteData
+	var emptyData PasteCollection
 	if reflect.DeepEqual(pasteData, emptyData) {
 		t.Errorf("unexpected empty pasteData while retrieving all")
 	}

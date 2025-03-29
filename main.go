@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -36,7 +37,9 @@ func main() {
 	})
 
 	router.GET("/get", GetValueByKey)
+	router.GET("/getall", GetAll)
 	router.POST("/set", SetValue)
+	router.DELETE("/remove", RemoveKey)
 	router.Run(":8888")
 }
 
@@ -67,6 +70,20 @@ func GetValueByKey(c *gin.Context) {
 	})
 }
 
+func GetAll(c *gin.Context) {
+	collection := pastebin.RetrieveAll()
+	bytes, marshalErr := json.Marshal(&collection)
+	if marshalErr != nil {
+		log.Errorf("failed to serialize paste collection; %v", marshalErr)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"collection": string(bytes),
+	})
+}
+
 func SetValue(c *gin.Context) {
 	var data SetBody
 	if bindErr := c.BindJSON(&data); bindErr != nil {
@@ -79,4 +96,17 @@ func SetValue(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"key": key,
 	})
+}
+
+func RemoveKey(c *gin.Context) {
+	key := c.Query("key")
+	if key == "" {
+		err := fmt.Errorf("missing key in request")
+		log.Error(err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	pastebin.DeletePaste(key)
+	c.JSON(http.StatusNoContent, nil)
 }
