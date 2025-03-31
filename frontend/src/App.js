@@ -17,12 +17,33 @@ const App = () => {
     const url = process.env.REACT_APP_RETRIEVE_API
     const res = await fetch(url)
     const data = await res.json()
-    //console.log(data)
 
     if (res.status === 200 && data.collection !== null) {
       const collection = JSON.parse(data.collection)
       setPasteData(collection.data)
     }
+  }
+
+  const deleteHandler = async (key) => {
+    const url = process.env.REACT_APP_DELETE_API + key
+    const res = await fetch(url, {
+      method: "DELETE",
+    })
+    .then((res) => {
+      res.json()
+      return res
+    })
+    .catch((e) => {
+      console.log(e)
+    })
+
+    if (res && res.status == 204) {
+      setPasteData(pasteData.filter((paste) => paste.key !== key))
+    }
+  }
+
+  const dataExists = () => {
+    return (pasteData !== null && pasteData.length > 0)
   }
 
   const sendPost = async() => {
@@ -62,8 +83,10 @@ const App = () => {
         <button onClick={sendPost}>Paste</button>
       </div>
       <div>
-        <text>Panel</text>
-        {pasteData != null ? <SidePanel pastedata={pasteData}></SidePanel> : <text>no items</text>}
+        <div>
+          <text>Panel</text>
+        </div>
+        {dataExists() ? <SidePanel pastedata={pasteData} deleteHandler={deleteHandler}></SidePanel> : <text>no items</text>}
       </div>
     </div>
   );
