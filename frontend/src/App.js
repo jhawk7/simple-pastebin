@@ -75,19 +75,17 @@ const App = () => {
 
   return (
     <div>
-      <div>
-        <h2>pasteBin.</h2>
-      </div>
-      <div>
-        <input type="text" value={inputValue} onChange={handleInputChange} placeholder="Enter text here" />
-        <button onClick={sendPost}>Paste</button>
-      </div>
-      <div>
-        <div>
-          <text>Panel</text>
+      <title>Simple PastBin</title>
+      <div class="d-flex flex-column justify-content-center align-items-center">
+        <div class="p-2" style={{marginTop:200, marginBottom:10}}>
+          <h1 class="fw-medium">pasteBin.</h1>
         </div>
-        {dataExists() ? <SidePanel pastedata={pasteData} deleteHandler={deleteHandler}></SidePanel> : <text>no items</text>}
+        <div class="d-flex flex-row justify-content-center align-items-center">
+          <input type="text" class="form-control" style={{marginRight: 5}} value={inputValue} onChange={handleInputChange} placeholder="Enter text here" />
+          <button class="btn btn-primary" onClick={sendPost}>Paste</button>
+        </div>
       </div>
+      {dataExists() ? <SidePanel pastedata={pasteData} deleteHandler={deleteHandler}></SidePanel> : <text>no items</text>}
     </div>
   );
 
