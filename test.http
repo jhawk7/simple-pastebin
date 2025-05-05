@@ -6,3 +6,7 @@ POST http://localhost:8888/set
 Content-Type: application/json
 
 {"value": "test"}
+
+###
+
+DELETE http://localhost:8888/remove?key=5aCY

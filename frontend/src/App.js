@@ -1,93 +1,88 @@
-import { useEffect, useState } from "react";
-import SidePanel from "./components/SidePanel";
+import React, { useState, useEffect } from "react";
 
-const App = () => {
-  const [inputValue, setInputValue] = useState('')
-  const [pasteData, setPasteData] = useState(null)
-
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value)
-  };
+const PastebinApp = () => {
+  const [pastes, setPastes] = useState([]);
+  const [newPaste, setNewPaste] = useState("");
 
   useEffect(() => {
-    getPasteData()
-  }, [])
+    fetchPastes();
+  }, []);
 
-  const getPasteData = async() => {
-    const url = process.env.REACT_APP_RETRIEVE_API
-    const res = await fetch(url)
-    const data = await res.json()
+  const fetchPastes = async () => {
+    const response = await fetch(process.env.REACT_APP_RETRIEVE_API);
+    const data = await response.json();
+    const collection = JSON.parse(data.collection)
+    setPastes(collection.data);
+  };
 
-    if (res.status === 200 && data.collection !== null) {
-      const collection = JSON.parse(data.collection)
-      setPasteData(collection.data)
-    }
-  }
+  const handleCopy = (value) => {
+    navigator.clipboard.writeText(value);
+  };
 
-  const deleteHandler = async (key) => {
-    const url = process.env.REACT_APP_DELETE_API + key
-    const res = await fetch(url, {
-      method: "DELETE",
-    })
-    .then((res) => {
-      res.json()
-      return res
-    })
-    .catch((e) => {
-      console.log(e)
-    })
+  const handleDelete = async (key) => {
+    await fetch(`${process.env.REACT_APP_DELETE_API}${key}`, { method: "DELETE" });
+    fetchPastes();
+  };
 
-    if (res && res.status == 204) {
-      setPasteData(pasteData.filter((paste) => paste.key !== key))
-    }
-  }
-
-  const dataExists = () => {
-    return (pasteData !== null && pasteData.length > 0)
-  }
-
-  const sendPost = async() => {
-    const url = process.env.REACT_APP_POST_API
-    const res = await fetch(url, {
+  const handleSubmit = async () => {
+    if (!newPaste.trim()) return;
+    await fetch(process.env.REACT_APP_POST_API, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        "value": inputValue,
-      })
-    })
-    .then((res) => {
-      res.json()
-      console.log(res.status)
-      return res
-    })
-    .catch((e) => {
-      console.log(e)
-    })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: newPaste }),
+    });
+    setNewPaste("");
+    fetchPastes();
+  };
 
-    setInputValue("")
-
-    if (res && res.status === 201) {
-      await getPasteData()
-    }
+  const dataPresent = () => {
+    return pastes != null && pastes.length > 0;
   }
 
   return (
-    <div>
-      <title>Simple PastBin</title>
-      <div class="d-flex flex-column justify-content-center align-items-center">
-        <div class="p-2" style={{marginTop:200, marginBottom:10}}>
-          <h1 class="fw-medium">pasteBin.</h1>
-        </div>
-        <div class="d-flex flex-row justify-content-center align-items-center">
-          <input type="text" class="form-control" style={{marginRight: 5}} value={inputValue} onChange={handleInputChange} placeholder="Enter text here" />
-          <button class="btn btn-primary" onClick={sendPost}>Paste</button>
-        </div>
+    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "20px" }}>Pastebin UI</h1>
+      <div style={{ marginBottom: "30px" }}>
+        <input
+          value={newPaste}
+          onChange={(e) => setNewPaste(e.target.value)}
+          placeholder="Enter text to store..."
+          style={{ width: "100%", padding: "10px", fontSize: "16px" }}
+        />
+        <button
+          onClick={handleSubmit}
+          style={{ marginTop: "10px", padding: "10px", width: "100%", fontSize: "16px", cursor: "pointer" }}
+        >
+          Submit
+        </button>
       </div>
-      {dataExists() ? <SidePanel pastedata={pasteData} deleteHandler={deleteHandler}></SidePanel> : <text>no items</text>}
+
+      {dataPresent() && pastes.map(({ key, value }) => (
+        <div
+          key={key}
+          style={{ border: "1px solid #ccc", borderRadius: "8px", padding: "15px", marginBottom: "15px" }}
+        >
+          <div style={{ fontWeight: "bold" }}>Key: {key}</div>
+          <div style={{ fontSize: "14px", color: "#555" }}>{value}</div>
+          <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+            <button
+              onClick={() => handleCopy(value)}
+              style={{ padding: "5px 10px", cursor: "pointer" }}
+            >
+              Copy
+            </button>
+            <button
+              onClick={() => handleDelete(key)}
+              style={{ padding: "5px 10px", cursor: "pointer", color: "red" }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
+};
 
-}
-export default App;
+export default PastebinApp;
+
