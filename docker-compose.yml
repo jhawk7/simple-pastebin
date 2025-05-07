@@ -3,5 +3,5 @@ services:
     image: "jhawk7/go-pastebin"
     build: .
     ports:
-      - 8888:8888
+      - 8383:8383
     restart: unless-stopped

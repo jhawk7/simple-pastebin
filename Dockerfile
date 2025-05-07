@@ -13,7 +13,7 @@ RUN go build -o bin/pastebin
 
 FROM golang:tip-alpine AS app
 WORKDIR /app
-EXPOSE 8888
+EXPOSE 8383
 COPY --from=asset-builder /frontend/build ./frontend/build
 COPY --from=builder /builder/bin/pastebin .
 CMD ["./pastebin"]
