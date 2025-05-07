@@ -40,7 +40,7 @@ func main() {
 	router.GET("/getall", GetAll)
 	router.POST("/set", SetValue)
 	router.DELETE("/remove", RemoveKey)
-	router.Run(":8888")
+	router.Run(":8383")
 }
 
 func GetValueByKey(c *gin.Context) {
