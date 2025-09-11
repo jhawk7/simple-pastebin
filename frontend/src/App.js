@@ -20,7 +20,7 @@ const PastebinApp = () => {
   };
 
   const handleDelete = async (key) => {
-    await fetch(`${process.env.REACT_APP_DELETE_API}${key}`, { method: "DELETE" });
+    await fetch(`${process.env.REACT_APP_DELETE_API}/${key}`, { method: "DELETE" });
     fetchPastes();
   };
 
