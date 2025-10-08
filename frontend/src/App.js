@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 const PastebinApp = () => {
   const [pastes, setPastes] = useState([]);
   const [newPaste, setNewPaste] = useState("");
+  const [copyStatus, setCopyStatus] = useState({});
 
   useEffect(() => {
     fetchPastes();
@@ -15,8 +16,62 @@ const PastebinApp = () => {
     setPastes(collection.data);
   };
 
-  const handleCopy = (value) => {
-    navigator.clipboard.writeText(value);
+  const handleCopy = async (value, key) => {
+    const markCopied = (k) => {
+      setCopyStatus((s) => ({ ...s, [k]: true }));
+      setTimeout(() => setCopyStatus((s) => ({ ...s, [k]: false })), 1500);
+    };
+
+    // Try modern async clipboard API first
+    if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      try {
+        await navigator.clipboard.writeText(value);
+        markCopied(key || value);
+        return;
+      } catch (err) {
+        // fall through to legacy fallback
+        console.warn('Clipboard API failed, falling back to execCommand', err);
+      }
+    }
+
+    // Fallback: create a temporary textarea, select and copy
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      // Prevent scrolling to bottom
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.width = '1px';
+      textarea.style.height = '1px';
+      textarea.style.padding = '0';
+      textarea.style.border = 'none';
+      textarea.style.outline = 'none';
+      textarea.style.boxShadow = 'none';
+      textarea.style.background = 'transparent';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      if (successful) {
+        markCopied(key || value);
+        return;
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // If we reach here, show a simple prompt fallback
+    // (user can manually copy)
+    try {
+      // eslint-disable-next-line no-alert
+      window.prompt('Copy to clipboard: Ctrl+C, Enter', value);
+    } catch (e) {
+      // nothing else we can do
+    }
   };
 
   const handleDelete = async (key) => {
@@ -66,10 +121,10 @@ const PastebinApp = () => {
           <div style={{ fontSize: "14px", color: "#555" }}>{value}</div>
           <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
             <button
-              onClick={() => handleCopy(value)}
+              onClick={() => handleCopy(value, key)}
               style={{ padding: "5px 10px", cursor: "pointer" }}
             >
-              Copy
+              {copyStatus[key] ? 'Copied!' : 'Copy'}
             </button>
             <button
               onClick={() => handleDelete(key)}
